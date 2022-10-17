@@ -20,3 +20,6 @@ Arduino file for testing developmnt on ESP32
 
 Calls functions from BLE_Driver
 
+## TODO:
+
+Need to include necessary source files from Arduino library to compile outside of IDE
