@@ -23,6 +23,6 @@ extern volatile int HEART_RATE;
 // Function prototypes
 void BLEServerInit(void);
 void CheckBLE_Status(void);
-void beginAdvertising();
+void beginAdvertising(void);
 
 #endif

@@ -11,6 +11,63 @@ volatile int OXYGEN_SAT = 0;
 volatile int HEART_RATE = 0;
 volatile int DEVICE_CONNECTED = 0;
 
+// Define Server Callback Handlers
+class ventCallback: public BLEServerCallbacks {
+  void onConnect(BLEServer* pServer) {
+    // Device Connected
+    DEVICE_CONNECTED = 1;
+    Serial.println("Connection Established to iPhone");
+  }
+  void onDisconnect(BLEServer* pServer) {
+    // Device Disconnected
+    DEVICE_CONNECTED = 0;
+    Serial.println("Connection to iPhone Terminated");
+    // ReEstablish Advertising
+    beginAdvertising();      
+  }
+};
+
+// Define Characteristic CallBack Handelers
+class oxygenCallback: public BLECharacteristicCallbacks {
+  // Define Read and Write Subroutines
+  void onRead(BLECharacteristic* pCharacteristic) {
+  }
+  void onWrite(BLECharacteristic* pCharacteristic) {
+    int new_ox_sat;
+    try {
+      new_ox_sat = stoi(pCharacteristic->getValue());
+      OXYGEN_SAT = new_ox_sat;
+      Serial.print("Oxygen Sat From iPhone: ");
+      Serial.println(OXYGEN_SAT);
+    }
+    catch(std::invalid_argument) {
+    Serial.println("ERROR: Unreconized Characteristic Input");
+    pCharacteristic->setValue(std::to_string(OXYGEN_SAT));
+    }
+    
+  }
+};
+
+class heartRateCallback: public BLECharacteristicCallbacks {
+  // Define Read and Write Subroutines
+  void onRead(BLECharacteristic* pCharacteristic) {
+
+  }
+  void onWrite(BLECharacteristic* pCharacteristic){
+    int new_hr;
+    try {
+      new_hr = stoi(pCharacteristic->getValue());
+      HEART_RATE = new_hr;
+      Serial.print("Heart Rate From iPhone: ");
+      Serial.println(HEART_RATE);
+    }
+    catch(std::invalid_argument) {
+    Serial.println("ERROR: Unreconized Characteristic Input");
+    pCharacteristic->setValue(std::to_string(HEART_RATE));
+    }
+  }
+};
+
 void CheckBLEStatus(void);
 
 void BLEServerInit(void)
@@ -23,68 +80,27 @@ void BLEServerInit(void)
   BLEDevice::init("Ventigator BLE Server");
   BLEServer *ventServer = BLEDevice::createServer();
 
-  // Define Server Callback Handlers
-  class ventCallback: public BLEServerCallbacks {
-    void onConnect(BLEServer* pServer) {
-      // Device Connected
-      DEVICE_CONNECTED = 1;
-      Serial.println("Connection Established to iPhone");
-    }
-    void onDisconnect(BLEServer* pServer) {
-      // Device Disconnected
-      DEVICE_CONNECTED = 0;
-      Serial.println("Connection to iPhone Terminated");
-      // ReEstablish Advertising
-      beginAdvertising();      
-    }
-  };
-
   // Link Callback Handeler to BLEServer
   ventServer->setCallbacks(new ventCallback());
 
   // Define Main Service
   BLEService *ventService = ventServer->createService(SERVICE_UUID);
+
   // Define Characteristics
   // Oxygen Saturation
   BLECharacteristic *oxygen_sat_char = ventService->createCharacteristic(
-                                                  O2_CHARACTERISTIC_UUID,
-                                                  BLECharacteristic::PROPERTY_READ |
-                                                  BLECharacteristic::PROPERTY_WRITE
-                                                  );
+                                                    O2_CHARACTERISTIC_UUID,
+                                                    BLECharacteristic::PROPERTY_READ |
+                                                    BLECharacteristic::PROPERTY_WRITE);
   // Heart Rate
   BLECharacteristic *heart_rate_char = ventService->createCharacteristic(
-                                              HR_CHARACTERISTIC_UUID,
-                                              BLECharacteristic::PROPERTY_READ |
-                                              BLECharacteristic::PROPERTY_WRITE
-                                       );
+                                                    HR_CHARACTERISTIC_UUID,
+                                                    BLECharacteristic::PROPERTY_READ |
+                                                    BLECharacteristic::PROPERTY_WRITE);
 
   // Initalize Characteristc Values
   oxygen_sat_char->setValue("0");
   heart_rate_char->setValue("0");
-
-  // Define CallBack Handelers
-  class oxygenCallback: public BLECharacteristicCallbacks {
-    // Define Read and Write Subroutines
-    void onRead(BLECharacteristic* pCharacteristic) {
-    }
-    void onWrite(BLECharacteristic* pCharacteristic) {
-      OXYGEN_SAT = stoi(pCharacteristic->getValue());
-      Serial.print("Oxygen Sat From iPhone: ");
-      Serial.println(OXYGEN_SAT);
-    }
-  };
-
-  class heartRateCallback: public BLECharacteristicCallbacks {
-    // Define Read and Write Subroutines
-    void onRead(BLECharacteristic* pCharacteristic) {
-
-    }
-    void onWrite(BLECharacteristic* pCharacteristic) {
-      HEART_RATE = stoi(pCharacteristic->getValue());
-      Serial.print("Heart Rate From iPhone: ");
-      Serial.println(HEART_RATE);
-    }
-  };
   
   // Link Callback Handlers to Characterstics
   oxygen_sat_char->setCallbacks(new oxygenCallback());
