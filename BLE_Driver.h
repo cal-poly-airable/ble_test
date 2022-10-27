@@ -16,9 +16,9 @@
 
 // Global Varibles used in this scope
 
-extern volatile int DEVICE_CONNECTED;
-extern volatile int OXYGEN_SAT;
-extern volatile int HEART_RATE;
+extern volatile uint8_t DEVICE_CONNECTED;
+extern volatile uint8_t OXYGEN_SAT;
+extern volatile uint8_t HEART_RATE;
 
 // Function prototypes
 void BLEServerInit(void);

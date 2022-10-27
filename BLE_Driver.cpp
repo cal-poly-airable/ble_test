@@ -7,9 +7,9 @@
 
 // Global Varibles Declared in headerfile
 
-volatile int OXYGEN_SAT = 0;
-volatile int HEART_RATE = 0;
-volatile int DEVICE_CONNECTED = 0;
+volatile uint8_t OXYGEN_SAT = 0;
+volatile uint8_t HEART_RATE = 0;
+volatile uint8_t DEVICE_CONNECTED = 0;
 
 // Define Server Callback Handlers
 class ventCallback: public BLEServerCallbacks {
@@ -33,9 +33,9 @@ class oxygenCallback: public BLECharacteristicCallbacks {
   void onRead(BLECharacteristic* pCharacteristic) {
   }
   void onWrite(BLECharacteristic* pCharacteristic) {
-    int new_ox_sat;
+    uint8_t new_ox_sat;
     try {
-      new_ox_sat = stoi(pCharacteristic->getValue());
+      new_ox_sat = *(pCharacteristic->getData());
       OXYGEN_SAT = new_ox_sat;
       Serial.print("Oxygen Sat From iPhone: ");
       Serial.println(OXYGEN_SAT);
@@ -54,9 +54,9 @@ class heartRateCallback: public BLECharacteristicCallbacks {
 
   }
   void onWrite(BLECharacteristic* pCharacteristic){
-    int new_hr;
+    uint8_t new_hr;
     try {
-      new_hr = stoi(pCharacteristic->getValue());
+      new_hr = *(pCharacteristic->getData());
       HEART_RATE = new_hr;
       Serial.print("Heart Rate From iPhone: ");
       Serial.println(HEART_RATE);
